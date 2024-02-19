@@ -158,16 +158,18 @@ class Raven {
 function drawScore() {
   ctx.fillStyle = 'black'
   ctx.fillText(`Score: ${score}`, 50, 75)
-  ctx.fillStyle = 'white'
-  ctx.fillText(`Score: ${score}`, 55, 77)
+  ctx.fillStyle = 'tomato'
+  ctx.fillText(`Score: ${score}`, 53, 77)
 }
 
 function drawGameOver() {
   ctx.textAlign = 'center'
   ctx.fillStyle = 'black'
-  ctx.fillText(`GAME OVER, your score is:  ${score}`, canvas.width / 2, canvas.height / 2)
-  ctx.fillStyle = 'white'
-  ctx.fillText(`GAME OVER, your score is:  ${score}`, canvas.width / 2 - 5, canvas.height / 2 - 5)
+  ctx.fillText(`GAME OVER, your score is: ${score}`, canvas.width / 2, canvas.height / 2)
+  ctx.fillText(`Refresh to try again`, canvas.width / 2, canvas.height / 1.8)
+  ctx.fillStyle = 'tomato'
+  ctx.fillText(`GAME OVER, your score is: ${score}`, canvas.width / 2 - 3, canvas.height / 2 - 2)
+  ctx.fillText(`Refresh to try again`, canvas.width / 2 - 3, canvas.height / 1.8 - 2)
 
 }
 
@@ -211,14 +213,11 @@ function animate(timestamp = 0) {
   drawScore();
 
 
-  // if (!gameOver) {
-  //   requestAnimationFrame(animate)
-  // } else {
-  //   drawGameOver();
-  // }
-
-  requestAnimationFrame(animate)
-
+  if (!gameOver) {
+    requestAnimationFrame(animate)
+  } else {
+    drawGameOver();
+  }
 }
 
 animate()
