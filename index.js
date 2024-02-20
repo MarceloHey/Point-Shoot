@@ -166,10 +166,10 @@ function drawGameOver() {
   ctx.textAlign = 'center'
   ctx.fillStyle = 'black'
   ctx.fillText(`GAME OVER, your score is: ${score}`, canvas.width / 2, canvas.height / 2)
-  ctx.fillText(`Refresh to try again`, canvas.width / 2, canvas.height / 1.8)
+  ctx.fillText(`Refresh to try again`, canvas.width / 2, canvas.height / 1.7)
   ctx.fillStyle = 'tomato'
   ctx.fillText(`GAME OVER, your score is: ${score}`, canvas.width / 2 - 3, canvas.height / 2 - 2)
-  ctx.fillText(`Refresh to try again`, canvas.width / 2 - 3, canvas.height / 1.8 - 2)
+  ctx.fillText(`Refresh to try again`, canvas.width / 2 - 3, canvas.height / 1.7 - 2)
 
 }
 
