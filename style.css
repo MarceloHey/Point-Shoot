@@ -12,6 +12,7 @@ canvas {
   height:100%;
   max-width: 2304px;
   max-height: 1296px;
+  cursor: crosshair;
 }
 
 #canvasCollision {

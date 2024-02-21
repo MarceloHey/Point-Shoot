@@ -1,14 +1,15 @@
 /** @type {HTMLCanvasElement} */
+const canvasCollision = document.getElementById("canvasCollision")
+const ctxCollision = canvasCollision.getContext('2d')
+const CANVAS_COLLISION_WIDTH = canvasCollision.width = window.innerWidth
+const CANVAS_COLLISION_HEIGHT = canvasCollision.height = window.innerHeight
+
+/** @type {HTMLCanvasElement} */
 const canvas = document.getElementById("canvas1")
 const ctx = canvas.getContext('2d')
 const CANVAS_WIDTH = canvas.width = window.innerWidth
 const CANVAS_HEIGHT = canvas.height = window.innerHeight
 
-/** @type {HTMLCanvasElement} */
-const canvasCollision = document.getElementById("canvasCollision")
-const ctxCollision = canvasCollision.getContext('2d')
-const CANVAS_COLLISION_WIDTH = canvasCollision.width = window.innerWidth
-const CANVAS_COLLISION_HEIGHT = canvasCollision.height = window.innerHeight
 const shipOptions = ['./assets/Bomber/Move.png', './assets/Corvette/Move.png', './assets/Fighter/Move.png']
 const backgroundOptions = [
   './assets/background/background1.png',
@@ -30,20 +31,21 @@ let explosions = []
 let particles = []
 let score = 0
 let gameOver = false
+let gameStarted = false
 ctx.font = '50px Arial'
 
 class Particle {
   constructor(x, y, size, color) {
-    this.x = x + size / 2 + Math.random() * 50 - 25
-    this.y = y + size / 3 + Math.random() * 50 - 25
+    this.x = x + size / 2 + Math.random() * 50
+    this.y = y + size / 3 + Math.random() * 50 - 5
     this.size = size
     this.color = color
-    this.radius = Math.random() * this.size / 10
+    this.radius = Math.random() * this.size / 20
     this.maxRadius = Math.random() * 20 + 35
     this.canDelete = false
     this.speedX = Math.random() * 1 + 0.5
-    // this.color = color
-    this.color = 'grey'
+    this.color = color
+    // this.color = 'grey'
   }
   update() {
     this.x += this.speedX
@@ -103,7 +105,6 @@ class Explosion {
   }
 }
 
-
 class Ship {
   constructor() {
     this.speedX = Math.random() * 5 + 3
@@ -124,7 +125,7 @@ class Ship {
     this.image.src = shipOptions[this.shipRandomizer()]
     this.randomColors = [Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255)]
     this.color = `rgb(${this.randomColors[0]}, ${this.randomColors[1]}, ${this.randomColors[2]})`
-    this.hasParticles = Math.random() > 0.6
+    this.hasParticles = Math.random() > 0.8
   }
 
   shipRandomizer() {
@@ -173,17 +174,21 @@ class Ship {
 
 function drawScore() {
   ctx.fillStyle = 'white'
-  ctx.fillText(`Score: ${score}`, 50, 75)
+  ctx.fillText(`Score: ${score}`, 100, 75)
 
 }
-
 function drawGameOver() {
   ctx.textAlign = 'center'
   ctx.fillStyle = 'white'
   ctx.fillText(`GAME OVER, your score is: ${score}`, canvas.width / 2, canvas.height / 2)
   ctx.fillText(`Refresh to try again`, canvas.width / 2, canvas.height / 1.7)
 }
-
+function drawGameStart() {
+  ctx.textAlign = 'center'
+  ctx.fillStyle = 'white'
+  ctx.fillText(`Press ENTER to start`, canvas.width / 2, canvas.height / 2)
+  window.addEventListener("keyup", handleEnterKeyPress)
+}
 function detectMouseCollision(e) {
   const detectPixelColor = ctxCollision.getImageData(e.x, e.y, 1, 1)
   const [r, g, b] = detectPixelColor.data
@@ -191,36 +196,33 @@ function detectMouseCollision(e) {
   ships.forEach(ship => {
     if (ship.randomColors[0] === r && ship.randomColors[1] === g && ship.randomColors[2] === b) {
       ship.canDelete = true
-      score++
+      ship.hasParticles ? score += 2 : score++
       explosions.push(new Explosion(ship.x, ship.y, ship.width))
     }
   })
 }
-
 function drawRandomBackground() {
   const backgroundImage = new Image()
   backgroundImage.src = backgroundOptions[randomBackgroundIndex]
   ctx.drawImage(backgroundImage, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 }
-
-// function playMusic() {
-//   const music = new Audio()
-//   music.src = './assets/sound/music.mp3'
-//   music.volume = .4
-//   music.load()
-//   music.play()
-// }
-
-// timestamp: valor automatico do js, tempo de runtime em ms, precisa do valor inicial pq começa com 'undefined'
-function animate(timestamp = 0) {
-  ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-  ctxCollision.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-  drawRandomBackground()
-
+function playMusic() {
+  const music = new Audio()
+  music.src = './assets/sound/music.mp3'
+  music.volume = .5
+  music.play()
+}
+function handleEnterKeyPress({ key }) {
+  if (key === 13 || key === 'Enter') gameStarted = true
+}
+function renderEnemies(timestamp) {
   // controla de quanto em quanto tempo vai ser renderizado um 'ship'
-  let deltaTime = timestamp - lastTime // quanto tempo para ser executado o loop 'animate', pode mudar de acordo com a máquina do usuario
+  // quanto tempo para ser executado o loop 'animate', pode mudar de acordo com a máquina do usuario
+  let deltaTime = timestamp - lastTime
   lastTime = timestamp
-  timeToNextShip += deltaTime // valor incrementa baseado nos frames que a maquina conseguir rodar, entao se a performance for baixa, a variavel vai receber valores maiores, alcançando mais rapido a condição do if para renderiar um 'ship', fazendo com que seja otimizado para todos os PCs e seja rodado a cada 500ms
+
+  // valor incrementa baseado nos frames que a maquina conseguir rodar, entao se a performance for baixa, a variavel vai receber valores maiores, alcançando mais rapido a condição do if para renderiar um 'ship', fazendo com que seja otimizado para todos os PCs e seja rodado a cada 500ms
+  timeToNextShip += deltaTime
   if (timeToNextShip > shipInterval) {
     ships.push(new Ship())
     timeToNextShip = 0
@@ -233,14 +235,32 @@ function animate(timestamp = 0) {
   ships = ships.filter(ship => !ship.canDelete)
   explosions = explosions.filter(explosion => !explosion.canDelete)
   particles = particles.filter(particle => !particle.canDelete)
+}
 
-  drawScore();
+// timestamp: valor automatico do js, tempo de runtime em ms, precisa do valor inicial pq começa com 'undefined'
+function animate(timestamp = 0) {
+  ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  ctxCollision.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  drawRandomBackground()
 
-  if (!gameOver) {
-    requestAnimationFrame(animate)
-  } else {
+  if (!gameStarted && !gameOver) {
+    drawGameStart()
+  }
+
+  if (gameStarted && !gameOver) {
+    window.removeEventListener("keyup", handleEnterKeyPress)
+    drawScore();
+    renderEnemies(timestamp)
+    // playMusic()
+  }
+
+  if (gameStarted && gameOver) {
+    window.removeEventListener("keyup", handleEnterKeyPress)
+    window.removeEventListener('click', detectMouseCollision)
     drawGameOver();
   }
+
+  requestAnimationFrame(animate)
 }
 
 window.addEventListener('click', detectMouseCollision)
