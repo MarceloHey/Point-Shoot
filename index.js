@@ -9,11 +9,23 @@ const canvasCollision = document.getElementById("canvasCollision")
 const ctxCollision = canvasCollision.getContext('2d')
 const CANVAS_COLLISION_WIDTH = canvasCollision.width = window.innerWidth
 const CANVAS_COLLISION_HEIGHT = canvasCollision.height = window.innerHeight
+const shipOptions = ['./assets/Bomber/Move.png', './assets/Corvette/Move.png', './assets/Fighter/Move.png']
+const backgroundOptions = [
+  './assets/background/background1.png',
+  './assets/background/background2.png',
+  './assets/background/background3.png',
+  './assets/background/background4.png',
+  './assets/background/background5.png',
+  './assets/background/background6.png',
+  './assets/background/background7.png'
+]
+const randomBackgroundIndex = Math.floor(Math.random() * 6)
 
-let timeToNextRaven = 0
-let ravenInterval = 500
+
+let timeToNextShip = 0
+let shipInterval = 500
 let lastTime = 0
-let ravens = []
+let ships = []
 let explosions = []
 let particles = []
 let score = 0
@@ -30,8 +42,8 @@ class Particle {
     this.maxRadius = Math.random() * 20 + 35
     this.canDelete = false
     this.speedX = Math.random() * 1 + 0.5
-    this.color = color
-    // this.color = 'grey'
+    // this.color = color
+    this.color = 'grey'
   }
   update() {
     this.x += this.speedX
@@ -52,7 +64,7 @@ class Particle {
 class Explosion {
   constructor(x, y, size) {
     this.image = new Image()
-    this.image.src = './boom.png'
+    this.image.src = './assets/boom.png'
     this.spriteWidth = 200
     this.spriteHeight = 179
     this.size = size
@@ -60,7 +72,7 @@ class Explosion {
     this.y = y
     this.frame = 0
     this.sound = new Audio()
-    this.sound.src = './explosion.wav'
+    this.sound.src = './assets/sound/explosion.wav'
     this.sound.volume = .4
     this.timeSinceLastFrame = 0
     this.frameInterval = 100
@@ -92,13 +104,13 @@ class Explosion {
 }
 
 
-class Raven {
+class Ship {
   constructor() {
     this.speedX = Math.random() * 5 + 3
     this.speedY = Math.random() * 5 - 2.5
-    this.sizeModifier = Math.random() * 0.6 + 0.4
-    this.spriteWidth = 271
-    this.spriteHeight = 194
+    this.sizeModifier = Math.random() * 0.3 + 0.4
+    this.spriteWidth = 192
+    this.spriteHeight = 192
     this.width = this.spriteWidth * this.sizeModifier
     this.height = this.spriteHeight * this.sizeModifier
     this.x = CANVAS_WIDTH
@@ -106,13 +118,17 @@ class Raven {
     this.canDelete = false
     this.maxFrame = 4
     this.frame = 0
-    this.timeSinceFlap = 0
-    this.flapInterval = Math.random() * 50 + 50
+    this.timeSinceAnimationStep = 0
+    this.animationStepInterval = Math.random() * 50 + 50
     this.image = new Image()
-    this.image.src = './raven.png'
+    this.image.src = shipOptions[this.shipRandomizer()]
     this.randomColors = [Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255)]
     this.color = `rgb(${this.randomColors[0]}, ${this.randomColors[1]}, ${this.randomColors[2]})`
-    this.hasParticles = Math.random() > 0.5
+    this.hasParticles = Math.random() > 0.6
+  }
+
+  shipRandomizer() {
+    return Math.floor(Math.random() * 3)
   }
 
   update(deltaTime) {
@@ -121,12 +137,12 @@ class Raven {
 
     if (this.x < (0 - this.width)) this.canDelete = true
     if (this.y >= CANVAS_HEIGHT - this.height || this.y < 0) this.speedY = (this.speedY * -1)
-    this.timeSinceFlap += deltaTime
+    this.timeSinceAnimationStep += deltaTime
 
-    //quando chegar no valor estipulado de flapInterval, rodar a animação. O valor é somado com o delta do loop de animação
-    if (this.timeSinceFlap > this.flapInterval) {
+    //quando chegar no valor estipulado de animationStepInterval, rodar a animação. O valor timeSinceAnimationStep é somado com o delta do loop de animação
+    if (this.timeSinceAnimationStep > this.animationStepInterval) {
       this.frame > this.maxFrame ? this.frame = 0 : this.frame++
-      this.timeSinceFlap = 0
+      this.timeSinceAnimationStep = 0
       if (this.hasParticles) {
         for (let i = 0; i < 5; i++) {
           particles.push(new Particle(this.x, this.y, this.width, this.color))
@@ -156,62 +172,69 @@ class Raven {
 }
 
 function drawScore() {
-  ctx.fillStyle = 'black'
+  ctx.fillStyle = 'white'
   ctx.fillText(`Score: ${score}`, 50, 75)
-  ctx.fillStyle = 'tomato'
-  ctx.fillText(`Score: ${score}`, 53, 77)
+
 }
 
 function drawGameOver() {
   ctx.textAlign = 'center'
-  ctx.fillStyle = 'black'
+  ctx.fillStyle = 'white'
   ctx.fillText(`GAME OVER, your score is: ${score}`, canvas.width / 2, canvas.height / 2)
   ctx.fillText(`Refresh to try again`, canvas.width / 2, canvas.height / 1.7)
-  ctx.fillStyle = 'tomato'
-  ctx.fillText(`GAME OVER, your score is: ${score}`, canvas.width / 2 - 3, canvas.height / 2 - 2)
-  ctx.fillText(`Refresh to try again`, canvas.width / 2 - 3, canvas.height / 1.7 - 2)
-
 }
 
 function detectMouseCollision(e) {
   const detectPixelColor = ctxCollision.getImageData(e.x, e.y, 1, 1)
   const [r, g, b] = detectPixelColor.data
 
-  ravens.forEach(raven => {
-    if (raven.randomColors[0] === r && raven.randomColors[1] === g && raven.randomColors[2] === b) {
-      raven.canDelete = true
+  ships.forEach(ship => {
+    if (ship.randomColors[0] === r && ship.randomColors[1] === g && ship.randomColors[2] === b) {
+      ship.canDelete = true
       score++
-      explosions.push(new Explosion(raven.x, raven.y, raven.width))
+      explosions.push(new Explosion(ship.x, ship.y, ship.width))
     }
   })
 }
 
-window.addEventListener('click', detectMouseCollision)
+function drawRandomBackground() {
+  const backgroundImage = new Image()
+  backgroundImage.src = backgroundOptions[randomBackgroundIndex]
+  ctx.drawImage(backgroundImage, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+}
+
+// function playMusic() {
+//   const music = new Audio()
+//   music.src = './assets/sound/music.mp3'
+//   music.volume = .4
+//   music.load()
+//   music.play()
+// }
 
 // timestamp: valor automatico do js, tempo de runtime em ms, precisa do valor inicial pq começa com 'undefined'
 function animate(timestamp = 0) {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
   ctxCollision.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  drawRandomBackground()
 
-  // controla de quanto em quanto tempo vai ser renderizado um 'raven'
+  // controla de quanto em quanto tempo vai ser renderizado um 'ship'
   let deltaTime = timestamp - lastTime // quanto tempo para ser executado o loop 'animate', pode mudar de acordo com a máquina do usuario
   lastTime = timestamp
-  timeToNextRaven += deltaTime // valor incrementa baseado nos frames que a maquina conseguir rodar, entao se a performance for baixa, a variavel vai receber valores maiores, alcançando mais rapido a condição do if para renderiar um 'raven', fazendo com que seja otimizado para todos os PCs e seja rodado a cada 500ms
-  if (timeToNextRaven > ravenInterval) {
-    ravens.push(new Raven())
-    timeToNextRaven = 0
-    ravens = ravens.sort((a, b) => a.width - b.width) // ordena para q o maior fique na frente
+  timeToNextShip += deltaTime // valor incrementa baseado nos frames que a maquina conseguir rodar, entao se a performance for baixa, a variavel vai receber valores maiores, alcançando mais rapido a condição do if para renderiar um 'ship', fazendo com que seja otimizado para todos os PCs e seja rodado a cada 500ms
+  if (timeToNextShip > shipInterval) {
+    ships.push(new Ship())
+    timeToNextShip = 0
+    ships = ships.sort((a, b) => a.width - b.width) // ordena para q o maior fique na frente
   }
 
-  [...particles, ...ravens, ...explosions].forEach(raven => raven.update(deltaTime));
-  [...particles, ...ravens, ...explosions].forEach(raven => raven.draw());
+  [...particles, ...ships, ...explosions].forEach(obj => obj.update(deltaTime));
+  [...particles, ...ships, ...explosions].forEach(obj => obj.draw());
 
-  ravens = ravens.filter(raven => !raven.canDelete)
+  ships = ships.filter(ship => !ship.canDelete)
   explosions = explosions.filter(explosion => !explosion.canDelete)
   particles = particles.filter(particle => !particle.canDelete)
 
   drawScore();
-
 
   if (!gameOver) {
     requestAnimationFrame(animate)
@@ -220,4 +243,5 @@ function animate(timestamp = 0) {
   }
 }
 
+window.addEventListener('click', detectMouseCollision)
 animate()

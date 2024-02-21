@@ -1,5 +1,4 @@
 body {
-  /* background: linear-gradient(180deg, red, green, blue); */
   width:100vw;
   height:100vh;
   overflow: hidden;
@@ -11,6 +10,8 @@ canvas {
   left: 0;
   width:100%;
   height:100%;
+  max-width: 2304px;
+  max-height: 1296px;
 }
 
 #canvasCollision {
