@@ -12,19 +12,19 @@ const CANVAS_HEIGHT = canvas.height = window.innerHeight
 
 const shipOptions = ['./assets/Bomber/Move.png', './assets/Corvette/Move.png', './assets/Fighter/Move.png']
 const backgroundOptions = [
-  './assets/background/background1.png',
-  './assets/background/background2.png',
-  './assets/background/background3.png',
-  './assets/background/background4.png',
-  './assets/background/background5.png',
-  './assets/background/background6.png',
-  './assets/background/background7.png'
+  './assets/background/background1.webp',
+  './assets/background/background2.webp',
+  './assets/background/background3.webp',
+  './assets/background/background4.webp',
+  './assets/background/background5.webp',
+  './assets/background/background6.webp',
+  './assets/background/background7.webp'
 ]
 const randomBackgroundIndex = Math.floor(Math.random() * 6)
 
 
 let timeToNextShip = 0
-let shipInterval = 500
+let shipInterval = 1000
 let lastTime = 0
 let ships = []
 let explosions = []
@@ -32,7 +32,7 @@ let particles = []
 let score = 0
 let gameOver = false
 let gameStarted = false
-ctx.font = '50px Arial'
+ctx.font = '32px Arial'
 
 class Particle {
   constructor(x, y, size, color) {
@@ -62,7 +62,6 @@ class Particle {
     ctx.restore()
   }
 }
-
 class Explosion {
   constructor(x, y, size) {
     this.image = new Image()
@@ -107,7 +106,7 @@ class Explosion {
 
 class Ship {
   constructor() {
-    this.speedX = Math.random() * 5 + 3
+    this.speedX = Math.random() * 6 + 4
     this.speedY = Math.random() * 5 - 2.5
     this.sizeModifier = Math.random() * 0.3 + 0.4
     this.spriteWidth = 192
@@ -172,22 +171,29 @@ class Ship {
   }
 }
 
+function resetGame() {
+  ships = []
+  explosions = []
+  particles = []
+  score = 0
+}
+
 function drawScore() {
   ctx.fillStyle = 'white'
   ctx.fillText(`Score: ${score}`, 100, 75)
-
 }
 function drawGameOver() {
   ctx.textAlign = 'center'
   ctx.fillStyle = 'white'
   ctx.fillText(`GAME OVER, your score is: ${score}`, canvas.width / 2, canvas.height / 2)
-  ctx.fillText(`Refresh to try again`, canvas.width / 2, canvas.height / 1.7)
+  ctx.fillText(`CLICK to try again`, canvas.width / 2, canvas.height / 1.8)
+  window.addEventListener("click", handleClickGameStart)
 }
 function drawGameStart() {
   ctx.textAlign = 'center'
   ctx.fillStyle = 'white'
-  ctx.fillText(`Press ENTER to start`, canvas.width / 2, canvas.height / 2)
-  window.addEventListener("keyup", handleEnterKeyPress)
+  ctx.fillText(`CLICK to start`, canvas.width / 2, canvas.height / 2)
+  window.addEventListener("click", handleClickGameStart)
 }
 function detectMouseCollision(e) {
   const detectPixelColor = ctxCollision.getImageData(e.x, e.y, 1, 1)
@@ -212,8 +218,10 @@ function playMusic() {
   music.volume = .5
   music.play()
 }
-function handleEnterKeyPress({ key }) {
-  if (key === 13 || key === 'Enter') gameStarted = true
+function handleClickGameStart() {
+  resetGame()
+  gameStarted = true
+  gameOver = false
 }
 function renderEnemies(timestamp) {
   // controla de quanto em quanto tempo vai ser renderizado um 'ship'
@@ -248,20 +256,22 @@ function animate(timestamp = 0) {
   }
 
   if (gameStarted && !gameOver) {
-    window.removeEventListener("keyup", handleEnterKeyPress)
+    window.removeEventListener("click", handleClickGameStart)
+    window.removeEventListener("pointerdown", handleClickGameStart)
+    window.addEventListener('click', detectMouseCollision)
+    window.addEventListener('pointerdown', detectMouseCollision)
     drawScore();
     renderEnemies(timestamp)
     // playMusic()
   }
 
   if (gameStarted && gameOver) {
-    window.removeEventListener("keyup", handleEnterKeyPress)
+    window.removeEventListener("click", handleClickGameStart)
     window.removeEventListener('click', detectMouseCollision)
+    window.removeEventListener('pointerdown', detectMouseCollision)
     drawGameOver();
   }
 
   requestAnimationFrame(animate)
 }
-
-window.addEventListener('click', detectMouseCollision)
 animate()
