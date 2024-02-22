@@ -24,7 +24,7 @@ const randomBackgroundIndex = Math.floor(Math.random() * 6)
 
 
 let timeToNextShip = 0
-let shipInterval = 1000
+let shipInterval = 700
 let lastTime = 0
 let ships = []
 let explosions = []
