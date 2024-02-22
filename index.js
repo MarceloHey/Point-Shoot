@@ -257,7 +257,6 @@ function animate(timestamp = 0) {
 
   if (gameStarted && !gameOver) {
     window.removeEventListener("click", handleClickGameStart)
-    window.removeEventListener("pointerdown", handleClickGameStart)
     drawScore();
     renderEnemies(timestamp)
     // playMusic()
@@ -266,12 +265,10 @@ function animate(timestamp = 0) {
   if (gameStarted && gameOver) {
     window.removeEventListener("click", handleClickGameStart)
     window.removeEventListener('click', detectMouseCollision)
-    window.removeEventListener('pointerdown', detectMouseCollision)
     drawGameOver();
   }
   requestAnimationFrame(animate)
 }
 
 window.addEventListener('click', detectMouseCollision)
-window.addEventListener('pointerdown', detectMouseCollision)
 animate()
