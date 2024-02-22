@@ -196,7 +196,7 @@ function drawGameStart() {
   window.addEventListener("click", handleClickGameStart)
 }
 function detectMouseCollision(e) {
-  const detectPixelColor = ctxCollision.getImageData(e.x, e.y, 1, 1, {})
+  const detectPixelColor = ctxCollision.getImageData(e.x, e.y, 1, 1,)
   const [r, g, b] = detectPixelColor.data
 
   ships.forEach(ship => {
