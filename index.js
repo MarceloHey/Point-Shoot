@@ -1,12 +1,12 @@
 /** @type {HTMLCanvasElement} */
 const canvasCollision = document.getElementById("canvasCollision")
-const ctxCollision = canvasCollision.getContext('2d')
+const ctxCollision = canvasCollision.getContext('2d', { willReadFrequently: true })
 const CANVAS_COLLISION_WIDTH = canvasCollision.width = window.innerWidth
 const CANVAS_COLLISION_HEIGHT = canvasCollision.height = window.innerHeight
 
 /** @type {HTMLCanvasElement} */
 const canvas = document.getElementById("canvas1")
-const ctx = canvas.getContext('2d')
+const ctx = canvas.getContext('2d', { willReadFrequently: true })
 const CANVAS_WIDTH = canvas.width = window.innerWidth
 const CANVAS_HEIGHT = canvas.height = window.innerHeight
 
@@ -196,7 +196,7 @@ function drawGameStart() {
   window.addEventListener("click", handleClickGameStart)
 }
 function detectMouseCollision(e) {
-  const detectPixelColor = ctxCollision.getImageData(e.x, e.y, 1, 1)
+  const detectPixelColor = ctxCollision.getImageData(e.x, e.y, 1, 1, {})
   const [r, g, b] = detectPixelColor.data
 
   ships.forEach(ship => {
